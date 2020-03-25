@@ -1,0 +1,43 @@
+
+.lm-tree-group {
+  display: flex;
+
+}
+
+.lm-tree {
+  font-size: 14px;
+  min-width: 80px;
+  padding: 0 10px;
+}
+
+.lm-tree-header {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.lm-tree-item  {
+  margin: 5px 0;
+  color: #333;
+}
+
+.lm-tree-item:hover {
+  color: #287dfa;
+  cursor: pointer;
+}
+
+.lm-tree-item.lm-tree-open {
+  color: #287dfa;
+  margin-right: 3px;
+}
+
+.lm-tree-name {
+  margin-right: 3px;
+}
+
+
+
+
+
+
