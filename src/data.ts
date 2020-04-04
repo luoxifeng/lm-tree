@@ -5,12 +5,14 @@ export const data = {
     children: [
       {
         name: '1元',
-        open: false,
+        open: true,
+        active: true,
         title: "二级机构",
         children: [
           {
             name: "1元-二级机构A",
             open: false,
+            active: true,
             title: "3级机构",
             children: [
               {

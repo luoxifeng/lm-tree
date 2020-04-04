@@ -32,6 +32,11 @@
   margin-right: 3px;
 }
 
+.lm-tree-item.lm-tree-select {
+  color: red;
+  margin-right: 3px;
+}
+
 .lm-tree-name {
   margin-right: 3px;
 }
