@@ -3,12 +3,11 @@ import { IModel, ISelect } from './typings';
 import './style.css';
 
 interface IProps {
-  parent?: IModel;
   data: IModel,
   level?: number | undefined | string;
-  getLevelTitle?: (index?: number) => string;
-  onChange?: (args?: any, data?: IModel) => void;
-  onSelect: (args?: any, data?: IModel) => void;
+  getLevelTitle?: (level?: number) => string;
+  onChange?: (selectList?: ISelect[], data?: IModel) => void;
+  onSelect: (selectList?: ISelect[], data?: IModel) => void;
   onlyOne?: boolean;
 }
 
@@ -16,7 +15,7 @@ export default class Tree extends Component<IProps> {
 
   static defaultProps = {
     onlyOne: false,
-    level: '',
+    level: 0,
     getLevelTitle: () => '',
     onSelect() { }
   }
@@ -28,7 +27,7 @@ export default class Tree extends Component<IProps> {
     if (this.currentIndex || !data) {
       return []
     }
-    const loop = (model: IModel, i = 0, list: ISelect[] = []): ISelect[]  => {
+    const loop = (model: IModel, i = 0, list: ISelect[] = []): ISelect[] => {
       const { active, children = [] } = model;
       if (active) {
         list.push({
@@ -36,7 +35,6 @@ export default class Tree extends Component<IProps> {
           select: model
         });
       }
-      ;
       return list.concat(
         ...children.map(t => {
           return loop(t, i++);
@@ -53,10 +51,6 @@ export default class Tree extends Component<IProps> {
 
   private get currentIndex() {
     return ~~(this.props.level || '');
-  }
-
-  private get nextIndex() {
-    return this.currentIndex + 1;
   }
 
   private get opened(): IModel | null {
@@ -81,45 +75,41 @@ export default class Tree extends Component<IProps> {
     return this.list;
   }
 
-
-
   private handlerToggle = (index: number) => {
     const list = this.renderList;
     const curr = list[index];
-    const open = !curr.open; // 缓存当前点击的将要变成的状态
+    const open = !curr.open;
 
-    this.closeAll(); // 关闭所有的
-    curr.open = open; // 然后再把缓存下来的状态更新到当前项
-    this.forceUpdate(); //强制更新
+    this.closeAll();
+    curr.open = open;
+    this.forceUpdate();
   }
 
   private hasChildren(data: IModel) {
     return data.children && data.children.length;
   }
 
-  private closeAll() {
-    const deepClose = (t: IModel) => {
-      t.open = false;
-      (t.children || []).forEach(deepClose);
-    };
+  private commonDeep = (key: 'active' | 'open') => () =>
+    this.list.forEach(function deep(t: IModel) {
+      t[key] = false;
+      (t.children || []).forEach(deep);
+    })
 
-    this.list.forEach(deepClose);
-  }
+  private closeAll = this.commonDeep('open');
 
-  private unActiveAll() {
-    const deepUnactive = (t: IModel) => {
-      t.active = false;
-      (t.children || []).forEach(deepUnactive);
-    };
-    this.list.forEach(deepUnactive);
-  }
+  private unActiveAll = this.commonDeep('active');
 
-  private onNextSelect = (curr: IModel) => (nextLevels: ISelect[] = []) => {
+  private handlerSelect = (curr: IModel) => (
+    nextLevels: ISelect[] = []
+  ) => {
     const { onSelect } = this.props;
-    const currentSelects = [{
-      level: this.currentIndex as any,
-      select: curr
-    }].concat(nextLevels);
+    const currentSelects = [
+      {
+        level: this.currentIndex,
+        select: curr
+      },
+      ...nextLevels
+    ];
 
     if (this.currentIndex) {
       return onSelect(currentSelects);
@@ -136,12 +126,10 @@ export default class Tree extends Component<IProps> {
 
   public recover() {
     this.closeAll();
-    this.selectList
-      .slice(0, -1)
-      .forEach(({ select }) => {
-        select && (select.open = true);
-      });
-    this.forceUpdate(); //强制更新
+    this.selectList.slice(0, -1).forEach(({ select }) => {
+      select && (select.open = true);
+    });
+    this.forceUpdate();
   }
 
   public render() {
@@ -165,7 +153,7 @@ export default class Tree extends Component<IProps> {
                   >
                     <span
                       className="lm-tree-name"
-                      onClick={() => this.onNextSelect(data)([])}
+                      onClick={() => this.handlerSelect(data)([])}
                     >
                       {data.name}
                     </span>
@@ -189,10 +177,10 @@ export default class Tree extends Component<IProps> {
           this.opened &&
           <Tree
             data={this.opened}
-            level={this.nextIndex}
+            level={this.currentIndex + 1}
             getLevelTitle={getLevelTitle}
             onlyOne={onlyOne}
-            onSelect={this.onNextSelect(this.opened)}
+            onSelect={this.handlerSelect(this.opened)}
           />
         }
       </div>
